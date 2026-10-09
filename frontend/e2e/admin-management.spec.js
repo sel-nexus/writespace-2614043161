@@ -1,0 +1,52 @@
+import { expect, test } from '@playwright/test';
+
+test('admin manages posts and accounts while protected accounts remain undeletable', async ({ page }) => {
+  const errors = [];
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByLabel('Username').fill('admin');
+  await page.getByLabel('Password').fill('admin');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page.getByRole('region', { name: 'Dashboard statistics' })).toContainText('Total Admins');
+  await page.getByRole('link', { name: 'Manage Users' }).click();
+  await expect(page.getByRole('heading', { name: 'Manage Users' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Default admin cannot be deleted' })).toBeDisabled();
+  await page.getByLabel('Display Name').fill('Ari North');
+  await page.getByLabel('Username').fill('ari');
+  await page.getByLabel('Password').fill('secret');
+  await page.getByLabel('Role').selectOption('user');
+  await page.getByRole('button', { name: 'Create User' }).click();
+  await expect(page.getByText('Ari North')).toBeVisible();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Delete Ari North' }).click();
+  await expect(page.getByText('Ari North')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Back to Dashboard' }).click();
+  await page.getByRole('link', { name: 'Write New Post' }).click();
+  await page.getByLabel('Title').fill('Admin note');
+  await page.getByLabel('Content').fill('A post managed by the site owner.');
+  await page.getByRole('button', { name: 'Publish Post' }).click();
+  await expect(page.getByRole('heading', { name: 'Admin note' })).toBeVisible();
+  await page.getByRole('link', { name: 'WriteSpace' }).click();
+  await expect(page.getByRole('link', { name: 'Go to Dashboard' })).toBeVisible();
+  expect(errors).toEqual([]);
+  await page.screenshot({ path: 'test-results/admin-management-desktop.png', fullPage: true });
+});
+
+test('non-admin users cannot access admin pages', async ({ page }) => {
+  const errors = [];
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Get Started Free' }).click();
+  await page.getByLabel('Display Name').fill('Reader Admin Test');
+  await page.getByLabel('Username').fill('readeradmin');
+  await page.getByLabel('Password', { exact: true }).fill('secret');
+  await page.getByLabel('Confirm Password').fill('secret');
+  await page.getByRole('button', { name: 'Get Started' }).click();
+  await page.goto('/admin');
+  await expect(page).toHaveURL(/\/blogs$/);
+  expect(errors).toEqual([]);
+});
