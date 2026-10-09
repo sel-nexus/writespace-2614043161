@@ -57,6 +57,18 @@ describe('post detail', () => {
     expect(JSON.parse(window.localStorage.getItem('writespace_posts'))).toEqual([post]);
   });
 
+  it('keeps the post visible and reports an error when deletion cannot be saved', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('storage unavailable'); });
+    renderDetail();
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to delete this post from your browser.');
+    expect(screen.getByRole('heading', { name: 'A full note' })).toBeInTheDocument();
+    expect(screen.queryByText('Blogs destination')).not.toBeInTheDocument();
+    expect(JSON.parse(window.localStorage.getItem('writespace_posts'))).toEqual([post]);
+  });
+
   it('hides management actions for a post owned by another user', () => {
     window.localStorage.setItem('writespace_posts', JSON.stringify([{ ...post, authorId: 'u2' }]));
     renderDetail();

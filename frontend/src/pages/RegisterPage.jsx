@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { getSession, registerUser, setSession } from '../utils/auth';
+import { registerUser, setSession } from '../utils/auth';
+import useSession from '../utils/useSession';
 
 /**
  * Render a validated local account registration form.
@@ -10,7 +11,7 @@ export default function RegisterPage() {
   const [fields, setFields] = useState({ displayName: '', username: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const existing = getSession();
+  const existing = useSession();
   if (existing) return <Navigate to={existing.role === 'admin' ? '/admin' : '/blogs'} replace />;
   const update = (event) => setFields((current) => ({ ...current, [event.target.name]: event.target.value }));
   const submit = (event) => {

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { Navigate, useLocation } from 'react-router-dom';
-import { getSession } from '../utils/auth';
+import useSession from '../utils/useSession';
 
 /**
  * Require a local session and optionally an admin role before rendering a route.
@@ -8,7 +8,7 @@ import { getSession } from '../utils/auth';
  * @returns {JSX.Element} Protected content or a role-appropriate redirect.
  */
 export default function ProtectedRoute({ children, adminOnly = false }) {
-  const session = getSession();
+  const session = useSession();
   const location = useLocation();
   if (!session) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   if (adminOnly && session.role !== 'admin') return <Navigate to="/blogs" replace />;

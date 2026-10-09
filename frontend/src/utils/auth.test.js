@@ -46,16 +46,23 @@ describe('local identity operations', () => {
     expect(authenticate('reader', 'bad')).toBeNull();
   });
 
-  it('registers a user and persists the user record', () => {
+  it('registers a user and persists the complete user record', () => {
     vi.stubGlobal('crypto', { randomUUID: () => 'new-user-id' });
+    vi.setSystemTime(new Date('2025-02-03T04:05:06.000Z'));
     const result = registerUser({ displayName: '  Rowan  ', username: 'rowan', password: 'secret', confirmPassword: 'secret' });
-    expect(result.user).toMatchObject({ id: 'new-user-id', displayName: 'Rowan', username: 'rowan', role: 'user' });
-    expect(getUsers()).toHaveLength(1);
+    const expectedUser = { id: 'new-user-id', displayName: 'Rowan', username: 'rowan', password: 'secret', role: 'user', createdAt: '2025-02-03T04:05:06.000Z' };
+    expect(result.user).toEqual(expectedUser);
+    expect(getUsers()).toEqual([expectedUser]);
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
-  it('rejects missing fields, mismatched passwords, and duplicate admin/usernames', () => {
-    expect(registerUser({ displayName: '', username: 'x', password: 'a', confirmPassword: 'a' }).error).toBe('All fields are required.');
+  it('rejects whitespace-only fields, invalid field types, mismatched passwords, and duplicate admin/usernames', () => {
+    expect(registerUser({ displayName: '   ', username: 'x', password: 'a', confirmPassword: 'a' }).error).toBe('All fields are required.');
+    expect(registerUser({ displayName: 'X', username: '   ', password: 'a', confirmPassword: 'a' }).error).toBe('All fields are required.');
+    expect(registerUser({ displayName: 42, username: 'x', password: 'a', confirmPassword: 'a' }).error).toBe('All fields are required.');
+    expect(registerUser({ displayName: 'X', username: null, password: 'a', confirmPassword: 'a' }).error).toBe('All fields are required.');
+    expect(registerUser({ displayName: 'X', username: 'x', password: '', confirmPassword: 'a' }).error).toBe('All fields are required.');
     expect(registerUser({ displayName: 'X', username: 'x', password: 'a', confirmPassword: 'b' }).error).toBe('Passwords do not match.');
     expect(registerUser({ displayName: 'X', username: 'ADMIN', password: 'a', confirmPassword: 'a' }).error).toBe('That username is already taken.');
     saveUsers([{ id: 'u1', username: 'reader', password: 'x' }]);

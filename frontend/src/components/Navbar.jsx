@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import Avatar from './Avatar';
-import { clearSession, getSession } from '../utils/auth';
+import { clearSession } from '../utils/auth';
+import useSession from '../utils/useSession';
 
 /**
  * Render role-aware authenticated navigation with a stateful mobile menu and logout.
@@ -11,7 +12,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const navigate = useNavigate();
-  const session = getSession();
+  const session = useSession();
   const links = [
     { to: '/blogs', label: 'All Blogs' },
     { to: '/write', label: 'Write' },
@@ -33,7 +34,7 @@ export default function Navbar() {
           {links.map((link) => <NavLink className={linkClass} key={link.to} onClick={() => setMenuOpen(false)} to={link.to}>{link.label}</NavLink>)}
           <div className="relative flex items-center gap-2 border-t border-slate-100 pt-3 md:border-0 md:pt-0">
             <Avatar role={session?.role || 'user'} />
-            <button aria-expanded={accountOpen} className="rounded-lg px-2 py-2 text-left font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" onClick={() => setAccountOpen((open) => !open)} type="button">
+            <button aria-label={session?.displayName || 'Account'} aria-expanded={accountOpen} className="rounded-lg px-2 py-2 text-left font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" onClick={() => setAccountOpen((open) => !open)} type="button">
               {session?.displayName || 'Account'} <span aria-hidden="true">⌄</span>
             </button>
             {accountOpen && <button className="rounded-lg px-3 py-2 text-left font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 md:absolute md:right-0 md:top-12 md:bg-white md:shadow-lg" onClick={logout} type="button">Logout</button>}

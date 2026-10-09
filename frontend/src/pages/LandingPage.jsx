@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import PublicNavbar from '../components/PublicNavbar';
 import { getPosts } from '../utils/storage';
 import { getSession } from '../utils/auth';
 
@@ -19,7 +18,6 @@ export default function LandingPage() {
   const readingPath = session ? (session.role === 'admin' ? '/admin' : '/blogs') : '/login';
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
-      <PublicNavbar />
       <main>
         <section className="relative isolate flex min-h-[calc(100dvh-4rem)] items-center overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-pink-500 px-4 py-16 text-white sm:px-8">
           <div aria-hidden="true" className="absolute -right-20 top-16 h-72 w-72 rounded-full bg-white/10 blur-3xl" />

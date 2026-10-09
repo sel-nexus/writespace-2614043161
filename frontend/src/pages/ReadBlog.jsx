@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Avatar from '../components/Avatar';
 import { getSession } from '../utils/auth';
@@ -23,9 +24,13 @@ export default function ReadBlog() {
   }
   const canManage = session?.role === 'admin' || post.authorId === session?.userId;
   const date = post.createdAt ? new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'Date unavailable';
+  const [error, setError] = useState('');
   const removePost = () => {
     if (!canManage || !window.confirm('Delete this post? This action cannot be undone.')) return;
-    savePosts(getPosts().filter((entry) => entry.id !== post.id));
+    if (!savePosts(getPosts().filter((entry) => entry.id !== post.id))) {
+      setError('Unable to delete this post from your browser.');
+      return;
+    }
     navigate('/blogs', { replace: true });
   };
   return (
@@ -41,6 +46,7 @@ export default function ReadBlog() {
           </div>
         </div>
         <div className="mt-8 whitespace-pre-wrap break-words leading-8 text-slate-700">{post.content}</div>
+        {error && <p className="mt-6 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}
         <div className="mt-10 flex flex-wrap gap-3 border-t border-slate-100 pt-6">
           {canManage ? <>
             <Link className="rounded-lg border border-indigo-200 bg-white px-4 py-2 font-medium text-indigo-700 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" to={`/edit/${post.id}`}>Edit</Link>

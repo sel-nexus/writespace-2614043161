@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '../components/Avatar';
 import StatCard from '../components/StatCard';
@@ -11,6 +12,7 @@ import { getPosts, getUsers, savePosts } from '../utils/storage';
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const session = getSession();
+  const [error, setError] = useState('');
   const posts = [...getPosts()].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const users = getUsers();
   const stats = [
@@ -21,7 +23,10 @@ export default function AdminDashboard() {
   ];
   const deletePost = (post) => {
     if (!window.confirm(`Delete “${post.title}”? This action cannot be undone.`)) return;
-    savePosts(getPosts().filter((entry) => entry.id !== post.id));
+    if (!savePosts(getPosts().filter((entry) => entry.id !== post.id))) {
+      setError('Unable to delete this post from your browser.');
+      return;
+    }
     navigate('/admin', { replace: true });
   };
   return (
@@ -35,6 +40,7 @@ export default function AdminDashboard() {
         <section aria-label="Dashboard statistics" className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => <StatCard key={`${stat.label}-${index}`} {...stat} />)}
         </section>
+        {error && <p className="mt-6 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}
         <section className="mt-8 flex flex-wrap gap-3">
           <Link className="rounded-lg bg-indigo-600 px-5 py-3 font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" to="/write">Write New Post</Link>
           <Link className="rounded-lg border border-indigo-200 bg-white px-5 py-3 font-semibold text-indigo-700 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" to="/users">Manage Users</Link>

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { getSession } from '../utils/auth';
+import useSession from '../utils/useSession';
 import Avatar from './Avatar';
 
 /**
@@ -8,7 +8,7 @@ import Avatar from './Avatar';
  * @returns {JSX.Element} Public navigation bar.
  */
 export default function PublicNavbar() {
-  const session = getSession();
+  const session = useSession();
   const homePath = session?.role === 'admin' ? '/admin' : '/blogs';
   return (
     <header className="sticky top-0 z-20 border-b border-slate-100 bg-white/95 shadow-sm backdrop-blur">

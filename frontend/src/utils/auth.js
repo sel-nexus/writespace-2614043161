@@ -1,4 +1,5 @@
 import { getUsers, saveUsers } from './storage';
+import { notifySessionChange } from './sessionEvents';
 
 const SESSION_KEY = 'writespace_session';
 export const ADMIN_ID = 'writespace-default-admin';
@@ -32,6 +33,7 @@ export function getSession() {
 export function setSession(session) {
   try {
     window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    notifySessionChange();
     return true;
   } catch (error) {
     console.warn('Unable to save the local session.', error);
@@ -46,6 +48,7 @@ export function setSession(session) {
 export function clearSession() {
   try {
     window.localStorage.removeItem(SESSION_KEY);
+    notifySessionChange();
     return true;
   } catch (error) {
     console.warn('Unable to clear the local session.', error);

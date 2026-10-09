@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import PublicNavbar from './components/PublicNavbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from './pages/AdminDashboard';
 import Home from './pages/Home';
@@ -9,17 +10,29 @@ import ReadBlog from './pages/ReadBlog';
 import RegisterPage from './pages/RegisterPage';
 import UserManagement from './pages/UserManagement';
 import WriteBlog from './pages/WriteBlog';
-import { getSession } from './utils/auth';
+import useSession from './utils/useSession';
 
 /**
  * Render the single-router application and select navigation by current session.
  * @returns {JSX.Element} Routed WriteSpace application.
  */
 export default function App() {
-  const session = getSession();
   return (
     <BrowserRouter>
-      {session && <Navbar />}
+      <RoutedApplication />
+    </BrowserRouter>
+  );
+}
+
+/**
+ * Render route content and the session-aware navigation inside the router.
+ * @returns {JSX.Element} Routed application shell.
+ */
+function RoutedApplication() {
+  const session = useSession();
+  return (
+    <>
+      {session ? <Navbar /> : <PublicNavbar />}
       <Routes>
         <Route element={<LandingPage />} path="/" />
         <Route element={<LoginPage />} path="/login" />
@@ -32,6 +45,6 @@ export default function App() {
         <Route element={<ProtectedRoute adminOnly><UserManagement /></ProtectedRoute>} path="/users" />
         <Route element={<Navigate replace to="/" />} path="*" />
       </Routes>
-    </BrowserRouter>
+    </>
   );
 }

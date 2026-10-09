@@ -1,9 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
+
+afterEach(() => vi.useRealTimers());
 
 beforeEach(() => window.localStorage.clear());
 
@@ -49,6 +51,7 @@ describe('login page', () => {
 describe('registration page', () => {
   it('creates a user session and routes to blogs', async () => {
     const user = userEvent.setup();
+    vi.stubGlobal('crypto', { randomUUID: () => 'registered-user-id' });
     renderAuth('/register', <RegisterPage />);
     await user.type(screen.getByLabelText('Display Name'), 'Mira Vale');
     await user.type(screen.getByLabelText('Username'), 'mira');
@@ -56,7 +59,30 @@ describe('registration page', () => {
     await user.type(screen.getByLabelText('Confirm Password'), 'secret');
     await user.click(screen.getByRole('button', { name: 'Get Started' }));
     expect(await screen.findByText('Blogs reached')).toBeInTheDocument();
+    const [registeredUser] = JSON.parse(window.localStorage.getItem('writespace_users'));
+    expect(registeredUser).toEqual({ id: 'registered-user-id', displayName: 'Mira Vale', username: 'mira', password: 'secret', role: 'user', createdAt: expect.any(String) });
+    expect(new Date(registeredUser.createdAt).toISOString()).toBe(registeredUser.createdAt);
+    expect(JSON.parse(window.localStorage.getItem('writespace_session'))).toEqual({ userId: 'registered-user-id', username: 'mira', displayName: 'Mira Vale', role: 'user' });
+    vi.unstubAllGlobals();
+  });
+
+  it('reports a session-save failure without navigating after account registration', async () => {
+    const user = userEvent.setup();
+    const originalSetItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function setItem(key, value) {
+      if (key === 'writespace_session') throw new Error('session storage unavailable');
+      return originalSetItem.call(this, key, value);
+    });
+    renderAuth('/register', <RegisterPage />);
+    await user.type(screen.getByLabelText('Display Name'), 'Mira Vale');
+    await user.type(screen.getByLabelText('Username'), 'mira');
+    await user.type(screen.getByLabelText('Password'), 'secret');
+    await user.type(screen.getByLabelText('Confirm Password'), 'secret');
+    await user.click(screen.getByRole('button', { name: 'Get Started' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Your account was saved, but this browser could not save the session. Please log in.');
+    expect(screen.queryByText('Blogs reached')).not.toBeInTheDocument();
     expect(JSON.parse(window.localStorage.getItem('writespace_users'))[0]).toMatchObject({ username: 'mira', role: 'user' });
+    expect(window.localStorage.getItem('writespace_session')).toBeNull();
   });
 
   it('rejects mismatched passwords and duplicate usernames', async () => {

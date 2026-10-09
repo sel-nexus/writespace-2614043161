@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { authenticate, getSession, setSession } from '../utils/auth';
+import { authenticate, setSession } from '../utils/auth';
+import useSession from '../utils/useSession';
 
 /**
  * Render the local demo login form and establish a role-aware browser session.
@@ -11,7 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const existing = getSession();
+  const existing = useSession();
   if (existing) return <Navigate to={existing.role === 'admin' ? '/admin' : '/blogs'} replace />;
   const submit = (event) => {
     event.preventDefault();

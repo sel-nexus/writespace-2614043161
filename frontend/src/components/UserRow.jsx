@@ -18,7 +18,7 @@ export default function UserRow({ user, isDefaultAdmin, isCurrentUser, onDelete 
       <td className="block py-1 sm:table-cell sm:px-4 sm:py-4"><span className={`inline-flex rounded-full px-3 py-0.5 text-sm font-medium ring-1 ${user.role === 'admin' ? 'bg-violet-100 text-violet-700 ring-violet-300' : 'bg-indigo-100 text-indigo-700 ring-indigo-300'}`}>{user.role === 'admin' ? 'Admin' : 'User'}</span></td>
       <td className="block py-1 text-sm text-slate-500 sm:table-cell sm:px-4 sm:py-4">{created}</td>
       <td className="block py-2 sm:table-cell sm:px-4 sm:py-4 sm:text-right">
-        <button aria-label={isDefaultAdmin ? 'Default admin cannot be deleted' : `Delete ${user.displayName}`} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50" disabled={protectedAccount} onClick={() => onDelete(user)} title={isDefaultAdmin ? 'Default admin cannot be deleted.' : isCurrentUser ? 'You cannot delete your own account.' : undefined} type="button">Delete</button>
+        <button aria-label={isDefaultAdmin ? 'Default admin cannot be deleted' : isCurrentUser ? 'Current account cannot be deleted' : `Delete ${user.displayName}`} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50" disabled={protectedAccount} onClick={() => onDelete(user)} title={isDefaultAdmin ? 'Default admin cannot be deleted.' : isCurrentUser ? 'You cannot delete your own account.' : undefined} type="button">Delete</button>
       </td>
     </tr>
   );

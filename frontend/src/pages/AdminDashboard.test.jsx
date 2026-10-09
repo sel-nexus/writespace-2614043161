@@ -50,4 +50,18 @@ describe('admin dashboard', () => {
     await user.click(screen.getByRole('button', { name: 'Delete' }));
     expect(JSON.parse(window.localStorage.getItem('writespace_posts'))).toHaveLength(1);
   });
+
+  it('keeps the post visible and reports an error when deletion cannot be saved', async () => {
+    const user = userEvent.setup();
+    const post = { id: 'p1', title: 'Keep note', content: 'Body', createdAt: '2025-01-01T00:00:00.000Z', authorId: 'u1', authorName: 'Reader' };
+    window.localStorage.setItem('writespace_posts', JSON.stringify([post]));
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('storage unavailable'); });
+    renderDashboard();
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to delete this post from your browser.');
+    expect(screen.getByRole('link', { name: /Keep note/ })).toBeInTheDocument();
+    expect(screen.queryByText('Admin destination')).not.toBeInTheDocument();
+    expect(JSON.parse(window.localStorage.getItem('writespace_posts'))).toEqual([post]);
+  });
 });
